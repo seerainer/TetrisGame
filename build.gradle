@@ -1,0 +1,128 @@
+plugins {
+    id 'java'
+    id 'eclipse'
+    id 'application'
+    id 'org.graalvm.buildtools.native' version '0.10.6'
+}
+
+group = 'io.github.seerainer.tetris'
+version = '0.1.0'
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    swtArtifact = 'org.eclipse.swt.'
+    os = System.getProperty("os.name").toLowerCase()
+    arch = System.getProperty("os.arch")
+    normalizedArch = arch
+    swtWS = 'unknown'
+    swtOS = 'unknown'
+}
+
+switch (os) {
+    case 'linux':
+        swtArtifact += 'gtk.linux.'
+        swtWS = 'gtk'
+        swtOS = 'linux'
+        break
+    case 'mac os x':
+        swtArtifact += 'cocoa.macosx.'
+        swtWS = 'cocoa'
+        swtOS = 'macosx'
+        break
+    default:
+        if (os.startsWith("win")) {
+            swtArtifact += 'win32.win32.'
+            swtWS = 'win32'
+            swtOS = 'win32'
+        }
+}
+
+switch (arch) {
+    case ['amd64', 'x86_64']:
+        swtArtifact += 'x86_64'
+        normalizedArch = 'x86_64'
+        break
+    case 'aarch64':
+        swtArtifact += 'aarch64'
+        normalizedArch = 'aarch64'
+        break
+}
+
+dependencies {
+    implementation("org.eclipse.platform:${swtArtifact}:3.130.0") {
+        exclude group: 'org.eclipse.platform', module: 'org.eclipse.swt'
+    }
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_24
+    targetCompatibility = JavaVersion.VERSION_24
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(24)
+    }
+}
+
+application {
+    mainClass = 'io.github.seerainer.tetris.TetrisGame'
+}
+
+run {
+    if (os.contains("mac")) {
+        jvmArgs += '-XstartOnFirstThread'
+    }
+    jvmArgs += '--enable-native-access=ALL-UNNAMED'
+}
+
+graalvmNative {
+    testSupport = false
+    toolchainDetection = true
+
+    binaries {
+        main {
+            imageName = 'TetrisGame'
+            mainClass = application.mainClass
+            buildArgs.add('-march=compatibility')
+            buildArgs.add('-Ob')
+            buildArgs.add('--enable-native-access=ALL-UNNAMED')
+            buildArgs.add('--no-fallback')
+            buildArgs.add('-R:MinHeapSize=256m')
+            buildArgs.add('-R:MaxHeapSize=1g')
+            buildArgs.add('-R:MaxNewSize=512m')
+            useFatJar = true
+        }
+    }
+}
+
+tasks.withType(Jar).configureEach {
+    exclude(
+        'META-INF/ECLIPSE*',
+    	'META-INF/maven/**/**/*',
+    	'META-INF/versions/9/*',
+    	'META-INF/*.txt',
+        'about_files/*',
+        'version.txt',
+        '.api_description',
+        'about.html',
+        'fragment.properties',
+        'libswt*.jnilib',
+        'libswt*.so',
+        'swt*.dll',
+        'WebView2Loader.dll',
+        'module-info.class',
+        'org/eclipse/swt/awt/*',
+        'org/eclipse/swt/opengl/*'
+    )
+    manifest {
+        attributes 'Main-Class': application.mainClass
+        attributes 'SWT-WS': swtWS
+        attributes 'SWT-OS': swtOS
+        attributes 'SWT-Arch': normalizedArch
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
