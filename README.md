@@ -55,10 +55,10 @@ gradlew.bat build
 ### Run the Game
 ```bash
 # Run using Gradle
-./gradlew runGame
-
-# Or use the application plugin
 ./gradlew run
+
+# Or on Windows
+gradlew.bat run
 ```
 
 ## Code Architecture
