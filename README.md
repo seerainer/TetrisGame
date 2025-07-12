@@ -1,4 +1,4 @@
-# Tetris Game - Java SWT Implementation
+# Tetris Game
 
 A fully functional Tetris game implemented in Java using the Standard Widget Toolkit (SWT) and built with Gradle.
 
