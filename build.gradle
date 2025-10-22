@@ -2,7 +2,7 @@ plugins {
     id 'java'
     id 'eclipse'
     id 'application'
-    id 'org.graalvm.buildtools.native' version '0.10.6'
+    id 'org.graalvm.buildtools.native' version '0.11.2'
 }
 
 group = 'io.github.seerainer.tetris'
@@ -52,16 +52,14 @@ switch (arch) {
 }
 
 dependencies {
-    implementation("org.eclipse.platform:${swtArtifact}:3.130.0") {
+    implementation("org.eclipse.platform:${swtArtifact}:3.131.0") {
         exclude group: 'org.eclipse.platform', module: 'org.eclipse.swt'
     }
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_24
-    targetCompatibility = JavaVersion.VERSION_24
     toolchain {
-        languageVersion = JavaLanguageVersion.of(24)
+        languageVersion = JavaLanguageVersion.of(25)
     }
 }
 
